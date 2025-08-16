@@ -78,8 +78,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GT, p.parseInfixExpression)
 
 	// postfix
-	p.registerInfix(token.INCREMENT, p.parsePostfixExpression)
-	p.registerInfix(token.DECREMENT, p.parsePostfixExpression)
+	// p.registerInfix(token.INCREMENT, p.parsePostfixExpression)
+	// p.registerInfix(token.DECREMENT, p.parsePostfixExpression)
 
 	// Start with 2 tokens so curToken and peekToken are set
 	p.nextToken()
@@ -256,13 +256,13 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return exp
 }
 
-func (p *Parser) parsePostfixExpression(left ast.Expression) ast.Expression {
-	return &ast.PostfixExpression{
-		Token:    p.curToken,
-		Left:     left,
-		Operator: p.curToken.Literal,
-	}
-}
+// func (p *Parser) parsePostfixExpression(left ast.Expression) ast.Expression {
+// 	return &ast.PostfixExpression{
+// 		Token:    p.curToken,
+// 		Left:     left,
+// 		Operator: p.curToken.Literal,
+// 	}
+// }
 
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t

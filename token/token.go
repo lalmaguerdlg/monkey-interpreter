@@ -16,6 +16,11 @@ const (
 	IDENT = "IDENT"
 	INT   = "INT"
 
+	// TODO: Add these operators:
+	// Modulo (%)
+	// Exponent (^)
+	// Dot (.)
+
 	// Operators
 	ASSIGN    = "="
 	PLUS      = "+"

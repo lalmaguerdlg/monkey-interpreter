@@ -199,6 +199,9 @@ func (exp *InfixExpression) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, "}\n", depth)
 }
 
+// TODO: Implement PostfixExpressions these when feeling comfortable
+// an example of postfix operations are: increment and decrements `i++` `i--`
+
 type PostfixExpression struct {
 	Token    token.Token // the token.BANG token
 	Left     Expression
