@@ -128,6 +128,38 @@ func (il *IntegerLiteral) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, fmt.Sprintf("INT (%d)\n", il.Value), depth)
 }
 
+type PrefixExpression struct {
+	Token    token.Token // the token.BANG token
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode()            {}
+func (pe *PrefixExpression) TokenType() token.TokenType { return pe.Token.Type }
+func (pe *PrefixExpression) TokenLiteral() string       { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var b strings.Builder
+	b.WriteString("(")
+	b.WriteString(pe.Operator)
+	if pe.Right != nil {
+		b.WriteString(pe.Right.String())
+	}
+	b.WriteString(")")
+	return b.String()
+}
+
+func (pe *PrefixExpression) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, "PrefixExpression {\n", depth)
+	debugWrite(w, fmt.Sprintf("Operator (%s)\n", pe.Operator), depth+1)
+	if pe.Right != nil {
+		debugWrite(w, "Right:\n", depth+1)
+		pe.Right.ASTDebugString(w, depth+1)
+	} else {
+		debugWrite(w, "Right (nil)\n", depth+1)
+	}
+	debugWrite(w, "}\n", depth)
+}
+
 type ReturnStatement struct {
 	Token       token.Token // the token.RETURN token
 	ReturnValue Expression
