@@ -7,7 +7,6 @@ import (
 	"io"
 	"monkey/lexer"
 	"monkey/parser"
-	"monkey/token"
 )
 
 const PROMPT = ">> "
@@ -25,25 +24,29 @@ func Start(in io.Reader, out io.Writer) {
 		line := scanner.Text()
 		l := lexer.New(line)
 
-		fmt.Fprintln(out, "Token:")
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Fprintf(out, "%+v\n", tok)
-		}
-		l.Reset()
+		// for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
+		// fmt.Fprintln(out, "Token:")
+		// 	fmt.Fprintf(out, "%+v\n", tok)
+		// }
+		// l.Reset()
 		p := parser.New(l)
 		program := p.ParseProgram()
-
 		errors := p.Errors()
 		if len(errors) > 0 {
-			fmt.Fprintln(out, "parsing errors:")
-			for _, error := range errors {
-				fmt.Fprintln(out, error)
-			}
-		} else {
-			fmt.Fprintln(out, "AST:")
-			fmt.Fprintln(out, program.ASTDebugString())
-			fmt.Fprintln(out, "")
-			fmt.Fprintln(out, program.String())
+			printParseErrors(out, errors)
+			continue
 		}
+
+		// fmt.Fprintln(out, program.ASTDebugString())
+		// fmt.Fprintln(out, "AST:")
+		// fmt.Fprintln(out, "")
+		fmt.Fprintln(out, program.String())
+	}
+}
+
+func printParseErrors(out io.Writer, errors []string) {
+	fmt.Fprintln(out, "parsing errors:")
+	for _, error := range errors {
+		fmt.Fprintf(out, "\t%s\n", error)
 	}
 }
