@@ -42,6 +42,8 @@ func Start(in io.Reader, out io.Writer) {
 		} else {
 			fmt.Fprintln(out, "AST:")
 			fmt.Fprintln(out, program.ASTDebugString())
+			fmt.Fprintln(out, "")
+			fmt.Fprintln(out, program.String())
 		}
 	}
 }

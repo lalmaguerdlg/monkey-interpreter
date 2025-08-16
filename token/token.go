@@ -17,12 +17,14 @@ const (
 	INT   = "INT"
 
 	// Operators
-	ASSIGN   = "="
-	PLUS     = "+"
-	MINUS    = "-"
-	ASTERISK = "*"
-	SLASH    = "/"
-	BANG     = "!"
+	ASSIGN    = "="
+	PLUS      = "+"
+	MINUS     = "-"
+	ASTERISK  = "*"
+	SLASH     = "/"
+	BANG      = "!"
+	DECREMENT = "--"
+	INCREMENT = "++"
 
 	LT    = "<"
 	GT    = ">"

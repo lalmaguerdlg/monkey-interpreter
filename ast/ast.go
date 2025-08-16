@@ -134,29 +134,99 @@ type PrefixExpression struct {
 	Right    Expression
 }
 
-func (pe *PrefixExpression) expressionNode()            {}
-func (pe *PrefixExpression) TokenType() token.TokenType { return pe.Token.Type }
-func (pe *PrefixExpression) TokenLiteral() string       { return pe.Token.Literal }
-func (pe *PrefixExpression) String() string {
+func (exp *PrefixExpression) expressionNode()            {}
+func (exp *PrefixExpression) TokenType() token.TokenType { return exp.Token.Type }
+func (exp *PrefixExpression) TokenLiteral() string       { return exp.Token.Literal }
+func (exp *PrefixExpression) String() string {
 	var b strings.Builder
 	b.WriteString("(")
-	b.WriteString(pe.Operator)
-	if pe.Right != nil {
-		b.WriteString(pe.Right.String())
+	b.WriteString(exp.Operator)
+	if exp.Right != nil {
+		b.WriteString(exp.Right.String())
 	}
 	b.WriteString(")")
 	return b.String()
 }
 
-func (pe *PrefixExpression) ASTDebugString(w io.Writer, depth int) {
+func (exp *PrefixExpression) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, "PrefixExpression {\n", depth)
-	debugWrite(w, fmt.Sprintf("Operator (%s)\n", pe.Operator), depth+1)
-	if pe.Right != nil {
-		debugWrite(w, "Right:\n", depth+1)
-		pe.Right.ASTDebugString(w, depth+1)
+	debugWrite(w, fmt.Sprintf("Oexprator (%s)\n", exp.Operator), depth+1)
+	if exp.Right != nil {
+		exp.Right.ASTDebugString(w, depth+1)
 	} else {
 		debugWrite(w, "Right (nil)\n", depth+1)
 	}
+	debugWrite(w, "}\n", depth)
+}
+
+type InfixExpression struct {
+	Token    token.Token // the token.BANG token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (exp *InfixExpression) expressionNode()            {}
+func (exp *InfixExpression) TokenType() token.TokenType { return exp.Token.Type }
+func (exp *InfixExpression) TokenLiteral() string       { return exp.Token.Literal }
+func (exp *InfixExpression) String() string {
+	var b strings.Builder
+	b.WriteString("(")
+	if exp.Left != nil {
+		b.WriteString(exp.Left.String())
+	}
+	b.WriteString(" " + exp.Operator + " ")
+	if exp.Right != nil {
+		b.WriteString(exp.Right.String())
+	}
+	b.WriteString(")")
+	return b.String()
+}
+
+func (exp *InfixExpression) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, "InfixExpression {\n", depth)
+	if exp.Left != nil {
+		exp.Left.ASTDebugString(w, depth+1)
+	} else {
+		debugWrite(w, "Left (nil)\n", depth+1)
+	}
+	debugWrite(w, fmt.Sprintf("Operator (%s)\n", exp.Operator), depth+1)
+	if exp.Right != nil {
+		exp.Right.ASTDebugString(w, depth+1)
+	} else {
+		debugWrite(w, "Right (nil)\n", depth+1)
+	}
+	debugWrite(w, "}\n", depth)
+}
+
+type PostfixExpression struct {
+	Token    token.Token // the token.BANG token
+	Left     Expression
+	Operator string
+}
+
+func (exp *PostfixExpression) expressionNode()            {}
+func (exp *PostfixExpression) TokenType() token.TokenType { return exp.Token.Type }
+func (exp *PostfixExpression) TokenLiteral() string       { return exp.Token.Literal }
+func (exp *PostfixExpression) String() string {
+	var b strings.Builder
+	b.WriteString("(")
+	if exp.Left != nil {
+		b.WriteString(exp.Left.String())
+	}
+	b.WriteString(exp.Operator)
+	b.WriteString(")")
+	return b.String()
+}
+
+func (exp *PostfixExpression) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, "PostfixExpression {\n", depth)
+	if exp.Left != nil {
+		exp.Left.ASTDebugString(w, depth+1)
+	} else {
+		debugWrite(w, "Left (nil)\n", depth+1)
+	}
+	debugWrite(w, fmt.Sprintf("Oexprator (%s)\n", exp.Operator), depth+1)
 	debugWrite(w, "}\n", depth)
 }
 
