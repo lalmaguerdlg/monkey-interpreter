@@ -71,6 +71,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
 	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 
 	// Invalid tokens as prefix expressions
 	p.registerPrefix(token.RPAREN, p.illigalExpression)
@@ -312,6 +313,51 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	}
 
 	return exp
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	exp := &ast.FunctionLiteral{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	exp.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	exp.Body = p.parseBlockStatement()
+
+	return exp
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	idetifiers := []*ast.Identifier{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return idetifiers
+	}
+
+	p.nextToken()
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	idetifiers = append(idetifiers, ident)
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		if !p.expectPeek(token.IDENT) {
+			return nil
+		}
+		ident = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		idetifiers = append(idetifiers, ident)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return idetifiers
 }
 
 func (p *Parser) illigalExpression() ast.Expression {

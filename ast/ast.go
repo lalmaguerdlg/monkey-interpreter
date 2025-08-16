@@ -361,6 +361,44 @@ func (exp *IfExpression) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, "}\n", depth)
 }
 
+type FunctionLiteral struct {
+	Token      token.Token // the token.IF token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (exp *FunctionLiteral) expressionNode()            {}
+func (exp *FunctionLiteral) TokenType() token.TokenType { return exp.Token.Type }
+func (exp *FunctionLiteral) TokenLiteral() string       { return exp.Token.Literal }
+func (exp *FunctionLiteral) String() string {
+	var b strings.Builder
+	params := []string{}
+	for _, param := range exp.Parameters {
+		params = append(params, param.String())
+	}
+	b.WriteString("fn")
+	b.WriteString("(")
+	b.WriteString(strings.Join(params, ", "))
+	b.WriteString(") ")
+	if exp.Body != nil {
+		b.WriteString(exp.Body.String())
+	}
+	return b.String()
+}
+
+func (exp *FunctionLiteral) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, "FunctionLiteral {\n", depth)
+	if len(exp.Parameters) > 0 {
+		for _, param := range exp.Parameters {
+			param.ASTDebugString(w, depth+1)
+		}
+	}
+	if exp.Body != nil {
+		exp.Body.ASTDebugString(w, depth+1)
+	}
+	debugWrite(w, "}\n", depth)
+}
+
 func debugWrite(w io.Writer, str string, depth int) {
 	fmt.Fprintf(w, "%s%s", strings.Repeat(" ", depth*2), str)
 }
