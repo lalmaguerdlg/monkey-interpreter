@@ -399,6 +399,42 @@ func (exp *FunctionLiteral) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, "}\n", depth)
 }
 
+type CallExpression struct {
+	Token     token.Token // the token.IF token
+	Function  Expression
+	Arguments []Expression
+}
+
+func (exp *CallExpression) expressionNode()            {}
+func (exp *CallExpression) TokenType() token.TokenType { return exp.Token.Type }
+func (exp *CallExpression) TokenLiteral() string       { return exp.Token.Literal }
+func (exp *CallExpression) String() string {
+	var b strings.Builder
+	args := []string{}
+	for _, arg := range exp.Arguments {
+		args = append(args, arg.String())
+	}
+
+	b.WriteString(exp.Function.String())
+	b.WriteString("(")
+	b.WriteString(strings.Join(args, ", "))
+	b.WriteString(")")
+	return b.String()
+}
+
+func (exp *CallExpression) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, "CallExpression {\n", depth)
+	if exp.Function != nil {
+		exp.Function.ASTDebugString(w, depth+1)
+	}
+	if len(exp.Arguments) > 0 {
+		for _, arg := range exp.Arguments {
+			arg.ASTDebugString(w, depth+1)
+		}
+	}
+	debugWrite(w, "}\n", depth)
+}
+
 func debugWrite(w io.Writer, str string, depth int) {
 	fmt.Fprintf(w, "%s%s", strings.Repeat(" ", depth*2), str)
 }
