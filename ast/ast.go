@@ -204,7 +204,7 @@ func (il *IntegerLiteral) ASTDebugString(w io.Writer, depth int) {
 }
 
 type Boolean struct {
-	Token token.Token // the token.INT token
+	Token token.Token // the token.TRUE or FALSE token
 	Value bool
 }
 

@@ -143,7 +143,7 @@ func (l *Lexer) readIdentifier() string {
 func (l *Lexer) readNumber() string {
 	position := l.position
 	base := 10
-	if l.ch == '0' && isDigitPrefix(l.peekChar()) {
+	if l.ch == '0' && isBasePrefix(l.peekChar()) {
 		l.readChar()
 		prefix := l.ch
 		switch prefix {
@@ -198,7 +198,7 @@ func isDigit(ch byte, base int) bool {
 	}
 }
 
-func isDigitPrefix(ch byte) bool {
+func isBasePrefix(ch byte) bool {
 	return ch == 'b' || ch == 'x' || ch == 'o'
 }
 

@@ -43,7 +43,6 @@ func Start(in io.Reader, out io.Writer) {
 		// fmt.Fprintln(out, "AST:")
 		// fmt.Fprintln(out, debugASTString(program))
 		// fmt.Fprintln(out, "")
-		fmt.Fprintln(out, program.String())
 		result := evaluator.Eval(program)
 		if result != nil {
 			fmt.Fprintln(out, result.Inspect())
