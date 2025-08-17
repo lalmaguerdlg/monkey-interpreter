@@ -29,21 +29,21 @@ type Program struct {
 	Statements []Statement
 }
 
-// func (p *Program) TokenLiteral() string {
-// 	if len(p.Statements) > 0 {
-// 		return p.Statements[0].TokenLiteral()
-// 	} else {
-// 		return ""
-// 	}
-// }
-//
-// func (p *Program) TokenType() token.TokenType {
-// 	if len(p.Statements) > 0 {
-// 		return p.Statements[0].TokenType()
-// 	} else {
-// 		return ""
-// 	}
-// }
+func (p *Program) TokenLiteral() string {
+	if len(p.Statements) > 0 {
+		return p.Statements[0].TokenLiteral()
+	} else {
+		return ""
+	}
+}
+
+func (p *Program) TokenType() token.TokenType {
+	if len(p.Statements) > 0 {
+		return p.Statements[0].TokenType()
+	} else {
+		return ""
+	}
+}
 
 func (p *Program) String() string {
 	var b strings.Builder
@@ -54,15 +54,12 @@ func (p *Program) String() string {
 	return b.String()
 }
 
-func (p *Program) ASTDebugString() string {
-	var b strings.Builder
-
-	fmt.Fprintf(&b, "Program {\n")
+func (p *Program) ASTDebugString(w io.Writer, depth int) {
+	fmt.Fprintf(w, "Program {\n")
 	for _, stmt := range p.Statements {
-		stmt.ASTDebugString(&b, 1)
+		stmt.ASTDebugString(w, depth)
 	}
-	fmt.Fprintf(&b, "}\n")
-	return b.String()
+	fmt.Fprintf(w, "}\n")
 }
 
 type LetStatement struct {

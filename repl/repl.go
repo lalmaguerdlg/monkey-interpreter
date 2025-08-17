@@ -5,8 +5,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"monkey/ast"
+	"monkey/evaluator"
 	"monkey/lexer"
 	"monkey/parser"
+	"strings"
 )
 
 const PROMPT = ">> "
@@ -26,7 +29,7 @@ func Start(in io.Reader, out io.Writer) {
 
 		// for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
 		// fmt.Fprintln(out, "Token:")
-		// 	fmt.Fprintf(out, "%+v\n", tok)
+		// fmt.Fprintf(out, "%+v\n", tok)
 		// }
 		// l.Reset()
 		p := parser.New(l)
@@ -37,10 +40,14 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		// fmt.Fprintln(out, program.ASTDebugString())
 		// fmt.Fprintln(out, "AST:")
+		// fmt.Fprintln(out, debugASTString(program))
 		// fmt.Fprintln(out, "")
 		fmt.Fprintln(out, program.String())
+		result := evaluator.Eval(program)
+		if result != nil {
+			fmt.Fprintln(out, result.Inspect())
+		}
 	}
 }
 
@@ -49,4 +56,10 @@ func printParseErrors(out io.Writer, errors []string) {
 	for _, error := range errors {
 		fmt.Fprintf(out, "\t%s\n", error)
 	}
+}
+
+func debugASTString(node ast.Node) string {
+	var b strings.Builder
+	node.ASTDebugString(&b, 1)
+	return b.String()
 }
