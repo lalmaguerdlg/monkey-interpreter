@@ -95,7 +95,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
-		} else if isDigit(l.ch) {
+		} else if isDigit(l.ch, 10) {
 			tok.Literal = l.readNumber()
 			tok.Type = token.INT
 			return tok
@@ -142,7 +142,21 @@ func (l *Lexer) readIdentifier() string {
 
 func (l *Lexer) readNumber() string {
 	position := l.position
-	for isDigit(l.ch) {
+	base := 10
+	if l.ch == '0' && isDigitPrefix(l.peekChar()) {
+		l.readChar()
+		prefix := l.ch
+		switch prefix {
+		case 'b':
+			base = 2
+		case 'o':
+			base = 8
+		case 'x':
+			base = 16
+		}
+		l.readChar()
+	}
+	for isDigit(l.ch, base) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
@@ -161,6 +175,7 @@ func (l *Lexer) readTwoCharToken(targetChar byte) string {
 		l.readChar()
 		result += string(l.ch)
 	}
+
 	return result
 }
 
@@ -168,8 +183,23 @@ func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '$'
 }
 
-func isDigit(ch byte) bool {
-	return '0' <= ch && ch <= '9'
+func isDigit(ch byte, base int) bool {
+	switch base {
+	case 2:
+		return '0' <= ch && ch <= '1'
+	case 8:
+		return '0' <= ch && ch <= '7'
+	case 10:
+		return '0' <= ch && ch <= '9'
+	case 16:
+		return '0' <= ch && ch <= '9' || 'A' <= ch && ch <= 'F' || 'a' <= ch && ch <= 'f'
+	default:
+		return '0' <= ch && ch <= '9'
+	}
+}
+
+func isDigitPrefix(ch byte) bool {
+	return ch == 'b' || ch == 'x' || ch == 'o'
 }
 
 func isWhitespace(ch byte) bool {
