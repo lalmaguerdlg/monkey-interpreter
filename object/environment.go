@@ -1,5 +1,10 @@
 package object
 
+import (
+	"fmt"
+	"monkey/object"
+)
+
 type Environment struct {
 	outer *Environment
 	store map[string]Object
@@ -29,15 +34,26 @@ func (e *Environment) Get(name string) (Object, bool) {
 	return obj, ok
 }
 
-func (e *Environment) Set(name string, value Object) Object {
-	_, ok := e.store[name]
-	if !ok && e.outer != nil {
-		return e.outer.Set(name, value)
+// Set recursively searches for a variable where to store it
+//
+// TODO: Implement the assignment operator:
+// a = 1;
+func (e *Environment) Assign(name string, value Object) Object {
+	_, found := e.store[name]
+	if found {
+		e.store[name] = value
+		return value
 	}
-	e.store[name] = value
-	return value
+
+	if e.outer == nil {
+		return &object.Error{Message: fmt.Sprintf("could not assign to an undefined identifier %q", name)}
+	}
+
+	return e.outer.Assign(name, value)
 }
 
+// Shadow only assigns a value in the current scope, used for let statements
+// let a = 1;
 func (e *Environment) Shadow(name string, value Object) Object {
 	e.store[name] = value
 	return value
