@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"monkey/ast"
 	"monkey/object"
+	"strings"
 )
 
 var (
@@ -48,6 +49,22 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIdentifier(node, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: params, Env: env, Body: body}
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+		return applyFunction(function, args)
+
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
@@ -100,6 +117,53 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 	}
 
 	return result
+}
+
+func evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {
+	var result []object.Object
+
+	for _, exp := range expressions {
+		evaluated := Eval(exp, env)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+
+	return result
+}
+
+func applyFunction(fn object.Object, arguments []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
+	if len(arguments) < len(function.Parameters) {
+		missing := []string{}
+		for _, param := range function.Parameters[len(arguments):] {
+			missing = append(missing, param.Value)
+		}
+		return newError("function call is missing parameters: %s", strings.Join(missing, ", "))
+	}
+	extendedEnv := extendFunctionEnv(function, arguments)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapReturValue(evaluated)
+}
+
+func extendFunctionEnv(fn *object.Function, arguments []object.Object) *object.Environment {
+	env := object.NewEnclousedEnvironment(fn.Env)
+	for i, param := range fn.Parameters {
+		env.Shadow(param.Value, arguments[i])
+	}
+	return env
+}
+
+func unwrapReturValue(obj object.Object) object.Object {
+	value, ok := obj.(*object.ReturnValue)
+	if !ok {
+		return obj
+	}
+	return value.Value
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
