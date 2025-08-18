@@ -11,6 +11,7 @@ const (
 	IntegerObj ObjectType = "INTEGER"
 	BooleanObj ObjectType = "BOOLEAN"
 	ReturnObj  ObjectType = "RETURN"
+	ErrorObj   ObjectType = "ERROR"
 	NullObj    ObjectType = "NULL"
 )
 
@@ -39,6 +40,13 @@ type ReturnValue struct {
 
 func (rv *ReturnValue) Type() ObjectType { return ReturnObj }
 func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Type() ObjectType { return ErrorObj }
+func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 
 type Null struct{}
 
