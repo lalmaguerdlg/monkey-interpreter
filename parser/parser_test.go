@@ -38,6 +38,32 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestAssignmentStatements(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedIdentifier string
+		expectedValue      any
+	}{
+		{"x = 5;", "x", 5},
+		{"y = true;", "y", true},
+		{"foobar = y", "foobar", "y"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if program == nil {
+			t.Fatalf("ParseProgram() returned nil")
+		}
+
+		stmt := program.Statements[0]
+		testAssignmentStatement(t, stmt, tt.expectedIdentifier, tt.expectedValue)
+	}
+}
+
 func TestReturnStatement(t *testing.T) {
 	tests := []struct {
 		input         string
@@ -123,6 +149,18 @@ func testLetStatement(t *testing.T, stmt ast.Statement, name string, value any) 
 	}
 
 	return testLiteralExpression(t, letStmt.Value, value)
+}
+
+func testAssignmentStatement(t *testing.T, stmt ast.Statement, name string, value any) bool {
+	assignment, ok := stmt.(*ast.AssignmentStatement)
+	if !ok {
+		t.Errorf("stmt not *ast.AssignmentStatement. got=%T", stmt)
+		return false
+	}
+
+	testIdentifier(t, assignment.Name, name)
+
+	return testLiteralExpression(t, assignment.Value, value)
 }
 
 func TestIdentifierExpressions(t *testing.T) {

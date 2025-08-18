@@ -104,6 +104,43 @@ type ReturnStatement struct {
 	ReturnValue Expression
 }
 
+type AssignmentStatement struct {
+	Token token.Token // the token.IDENT token
+	Name  *Identifier
+	Value Expression
+}
+
+func (ls *AssignmentStatement) statementNode()             {}
+func (ls *AssignmentStatement) TokenType() token.TokenType { return ls.Token.Type }
+func (ls *AssignmentStatement) TokenLiteral() string       { return ls.Token.Literal }
+func (ls *AssignmentStatement) String() string {
+	var b strings.Builder
+
+	b.WriteString(ls.TokenLiteral() + " ")
+	b.WriteString(ls.Name.String())
+	b.WriteString(" = ")
+	if ls.Value != nil {
+		b.WriteString(ls.Value.String())
+	}
+	b.WriteString(";")
+	return b.String()
+}
+
+func (ls *AssignmentStatement) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, "AssignmentStatement {\n", depth)
+	if ls.Name != nil {
+		ls.Name.ASTDebugString(w, depth+1)
+	} else {
+		debugWrite(w, "Name (nil)\n", depth+1)
+	}
+	if ls.Value != nil {
+		ls.Value.ASTDebugString(w, depth+1)
+	} else {
+		debugWrite(w, "Value (nil)\n", depth+1)
+	}
+	debugWrite(w, "}\n", depth)
+}
+
 func (rs *ReturnStatement) statementNode()             {}
 func (rs *ReturnStatement) TokenType() token.TokenType { return rs.Token.Type }
 func (rs *ReturnStatement) TokenLiteral() string       { return rs.Token.Literal }

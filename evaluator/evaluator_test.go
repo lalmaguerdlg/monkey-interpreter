@@ -132,6 +132,23 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestAssignmentStatement(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int
+	}{
+		{"let a = 5; a = 10; a", 10},
+		{"let a = 5 * 5; a = a + a; a", 50},
+		{"let a = 5; let b = 0; b = a; b", 5},
+		{"let a = 5; let b = a; let c = 0; c = a + b + 5; c;", 15},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, int64(tt.expected))
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string

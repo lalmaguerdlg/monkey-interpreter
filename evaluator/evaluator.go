@@ -32,7 +32,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-		env.Shadow(node.Name.Value, val)
+		env.Set(node.Name.Value, val)
+	case *ast.AssignmentStatement:
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+		assigned := env.Assign(node.Name.Value, val)
+		if isError(assigned) {
+			return assigned
+		}
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
 		if isError(val) {
@@ -153,7 +162,7 @@ func applyFunction(fn object.Object, arguments []object.Object) object.Object {
 func extendFunctionEnv(fn *object.Function, arguments []object.Object) *object.Environment {
 	env := object.NewEnclousedEnvironment(fn.Env)
 	for i, param := range fn.Parameters {
-		env.Shadow(param.Value, arguments[i])
+		env.Set(param.Value, arguments[i])
 	}
 	return env
 }
