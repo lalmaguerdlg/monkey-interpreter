@@ -10,6 +10,7 @@ type ObjectType string
 const (
 	IntegerObj ObjectType = "INTEGER"
 	BooleanObj ObjectType = "BOOLEAN"
+	ReturnObj  ObjectType = "RETURN"
 	NullObj    ObjectType = "NULL"
 )
 
@@ -31,6 +32,13 @@ type Boolean struct {
 
 func (i *Boolean) Type() ObjectType { return BooleanObj }
 func (i *Boolean) Inspect() string  { return strconv.FormatBool(i.Value) }
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (rv *ReturnValue) Type() ObjectType { return ReturnObj }
+func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
 
 type Null struct{}
 
