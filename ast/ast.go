@@ -99,11 +99,6 @@ func (ls *LetStatement) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, "}\n", depth)
 }
 
-type ReturnStatement struct {
-	Token       token.Token // the token.RETURN token
-	ReturnValue Expression
-}
-
 type AssignmentStatement struct {
 	Token token.Token // the token.IDENT token
 	Name  *Identifier
@@ -116,7 +111,6 @@ func (ls *AssignmentStatement) TokenLiteral() string       { return ls.Token.Lit
 func (ls *AssignmentStatement) String() string {
 	var b strings.Builder
 
-	b.WriteString(ls.TokenLiteral() + " ")
 	b.WriteString(ls.Name.String())
 	b.WriteString(" = ")
 	if ls.Value != nil {
@@ -139,6 +133,11 @@ func (ls *AssignmentStatement) ASTDebugString(w io.Writer, depth int) {
 		debugWrite(w, "Value (nil)\n", depth+1)
 	}
 	debugWrite(w, "}\n", depth)
+}
+
+type ReturnStatement struct {
+	Token       token.Token // the token.RETURN token
+	ReturnValue Expression
 }
 
 func (rs *ReturnStatement) statementNode()             {}
