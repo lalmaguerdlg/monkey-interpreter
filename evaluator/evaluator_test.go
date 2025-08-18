@@ -115,6 +115,23 @@ func TestIfExpressions(t *testing.T) {
 	}
 }
 
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, int64(tt.expected))
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -186,6 +203,10 @@ func TestErrorHandlig(t *testing.T) {
       `,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{
+			"foobar",
+			"identifier foobar is undefined",
+		},
 	}
 
 	for _, tt := range tests {
@@ -202,11 +223,12 @@ func TestErrorHandlig(t *testing.T) {
 }
 
 func testEval(input string) object.Object {
+	env := object.NewEnvironment()
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
 
-	return Eval(program)
+	return Eval(program, env)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
