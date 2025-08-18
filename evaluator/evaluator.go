@@ -17,6 +17,8 @@ func Eval(node ast.Node) object.Object {
 	// Statements
 	case *ast.Program:
 		return evalStatements(node.Statements)
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
 
@@ -32,6 +34,8 @@ func Eval(node ast.Node) object.Object {
 		left := Eval(node.Left)
 		right := Eval(node.Right)
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 	}
 	return NULL
 }
@@ -95,14 +99,24 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 	}
 }
 
+func evalIfExpression(node *ast.IfExpression) object.Object {
+	condition := Eval(node.Condition)
+	casted := castObjectToBoolean(condition)
+	if casted == TRUE {
+		return Eval(node.Consequence)
+	} else if node.Alternative != nil {
+		return Eval(node.Alternative)
+	}
+
+	return NULL
+}
+
 func evalBangOperatorExpression(operand object.Object) object.Object {
 	switch operand {
 	case FALSE:
 		return TRUE
 	case TRUE:
 		return FALSE
-	case NULL:
-		return TRUE
 	default:
 		casted := castObjectToBoolean(operand)
 		return evalBangOperatorExpression(casted)
@@ -120,10 +134,14 @@ func evalMinusPrefixOperatorExpression(operand object.Object) object.Object {
 
 func castObjectToBoolean(obj object.Object) *object.Boolean {
 	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj
 	case *object.Integer:
 		return castIntegerToBoolean(obj)
-	default:
+	case *object.Null:
 		return FALSE
+	default:
+		return TRUE // Any other value is considered thruty
 	}
 }
 
