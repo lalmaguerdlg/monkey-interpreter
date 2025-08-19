@@ -145,20 +145,23 @@ func evalExpressions(expressions []ast.Expression, env *object.Environment) []ob
 }
 
 func applyFunction(fn object.Object, arguments []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+	case *object.Function:
+		if len(arguments) < len(fn.Parameters) {
+			missing := []string{}
+			for _, param := range fn.Parameters[len(arguments):] {
+				missing = append(missing, param.Value)
+			}
+			return newError("function call is missing parameters: %s", strings.Join(missing, ", "))
+		}
+		extendedEnv := extendFunctionEnv(fn, arguments)
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(arguments...)
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
-	if len(arguments) < len(function.Parameters) {
-		missing := []string{}
-		for _, param := range function.Parameters[len(arguments):] {
-			missing = append(missing, param.Value)
-		}
-		return newError("function call is missing parameters: %s", strings.Join(missing, ", "))
-	}
-	extendedEnv := extendFunctionEnv(function, arguments)
-	evaluated := Eval(function.Body, extendedEnv)
-	return unwrapReturValue(evaluated)
 }
 
 func extendFunctionEnv(fn *object.Function, arguments []object.Object) *object.Environment {
@@ -178,11 +181,14 @@ func unwrapReturValue(obj object.Object) object.Object {
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	val, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier %s is undefined", node.Value)
+	if val, ok := env.Get(node.Value); ok {
+		return val
 	}
-	return val
+
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+	return newError("identifier %s is undefined", node.Value)
 }
 
 func evalPrefixExpression(operator string, right object.Object) object.Object {
