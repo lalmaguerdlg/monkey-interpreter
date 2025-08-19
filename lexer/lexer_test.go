@@ -24,6 +24,8 @@ func TestNextToken(t *testing.T) {
 
   10 == 10;
   10 != 9;
+  # These are comments and should
+  # skipped by the lexer
   "hello";
   "hello world";
   "hello \"world\"";

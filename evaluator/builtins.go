@@ -28,6 +28,8 @@ var builtins = map[string]*object.Builtin{
 			return NULL
 		},
 	},
+
+	// Type conversion:
 	"string": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {

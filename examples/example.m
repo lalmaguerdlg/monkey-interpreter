@@ -1,6 +1,4 @@
 
-
-
 let newCounter = fn(start) {
   return fn() {
     start = start + 1;

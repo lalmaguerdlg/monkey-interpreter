@@ -8,7 +8,8 @@ let fullname = concat(firstname, lastname, " ")
 
 puts(fullname)
 
-puts("Casting to string")
+# These are comments
+puts("Casting to string") # can be place after statements
 puts("int: " + string(1))
 puts("bool: " + string(true))
 puts("function: " + string(fn(x) {x}))

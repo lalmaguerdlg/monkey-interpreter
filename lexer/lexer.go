@@ -29,6 +29,9 @@ func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
 	l.skipWhitespace()
+	for l.ch == '#' {
+		l.skipComment()
+	}
 
 	switch l.ch {
 	// Operators
@@ -134,6 +137,13 @@ func (l *Lexer) skipWhitespace() {
 	for isWhitespace(l.ch) {
 		l.readChar()
 	}
+}
+
+func (l *Lexer) skipComment() {
+	for l.ch != '\n' && l.ch != 0 {
+		l.readChar()
+	}
+	l.skipWhitespace()
 }
 
 func (l *Lexer) readIdentifier() string {
