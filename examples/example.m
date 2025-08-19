@@ -1,13 +1,4 @@
 
-let firstname = "Luis"
-let lastname = "Almaguer"
-
-let concat = fn(a, b, separator) { a + separator + b }
-
-let fullname = concat(firstname, lastname, " ")
-
-
-puts(fullname)
 
 
 let newCounter = fn(start) {
@@ -33,9 +24,10 @@ let fib = fn(x, counter) {
 }
 
 let counter = newCounter(0)
-let result = fib(25, counter)
+let x = 25
+let result = fib(x, counter)
 
-puts("fib(25): ");
-puts(result);
-puts("iterations: ");
-puts(counter() - 1);
+puts("fib(" + x + "): " + result);
+
+puts("iterations: " + (counter() - 1));
+

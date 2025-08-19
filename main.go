@@ -34,7 +34,10 @@ func runFile(filename string) {
 	program := p.ParseProgram()
 
 	env := object.NewEnvironment()
-	evaluator.Eval(program, env)
+	evaluation := evaluator.Eval(program, env)
+	if err, ok := evaluation.(*object.Error); ok {
+		fmt.Println(err.Message)
+	}
 }
 
 func runRepl() {

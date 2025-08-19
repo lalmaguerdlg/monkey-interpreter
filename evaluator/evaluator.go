@@ -206,7 +206,7 @@ func evalInfixExpression(operator string, left object.Object, right object.Objec
 	switch {
 	case left.Type() == object.IntegerType && right.Type() == object.IntegerType:
 		return evalIntegerInfixExpression(operator, left, right)
-	case left.Type() == object.StringType && right.Type() == object.StringType:
+	case left.Type() == object.StringType:
 		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
@@ -246,14 +246,23 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 
 func evalStringInfixExpression(operator string, left object.Object, right object.Object) object.Object {
 	leftVal := left.(*object.String).Value
-	rightVal := right.(*object.String).Value
 	switch operator {
 	case "+":
-		return &object.String{Value: leftVal + rightVal}
+		// TODO: add special string casting
+		// rightVal := castObjectToString(right)
+		return &object.String{Value: leftVal + right.Inspect()}
 	case "==":
-		return &object.Boolean{Value: leftVal == rightVal}
+		right, ok := right.(*object.String)
+		if !ok {
+			return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		}
+		return &object.Boolean{Value: leftVal == right.Value}
 	case "!=":
-		return &object.Boolean{Value: leftVal != rightVal}
+		right, ok := right.(*object.String)
+		if !ok {
+			return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		}
+		return &object.Boolean{Value: leftVal != right.Value}
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -294,6 +303,13 @@ func evalMinusPrefixOperatorExpression(operand object.Object) object.Object {
 	value := operand.(*object.Integer).Value
 	return &object.Integer{Value: -value}
 }
+
+// func castObjectToString(obj object.Object) *object.String {
+// 	switch obj := obj.(type) {
+// 	default:
+// 		return &object.String{Value: obj.Inspect()} // We currently dont have special string casting
+// 	}
+// }
 
 func castObjectToBoolean(obj object.Object) *object.Boolean {
 	switch obj := obj.(type) {
