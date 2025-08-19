@@ -26,12 +26,20 @@ func main() {
 func runFile(filename string) {
 	dat, err := os.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Could not open file %s\n", filename)
+		return
 	}
 	script := string(dat)
 	l := lexer.New(script)
 	p := parser.New(l)
 	program := p.ParseProgram()
+	errors := p.Errors()
+	if len(errors) > 0 {
+		for _, msg := range errors {
+			fmt.Println(msg)
+		}
+		return
+	}
 
 	env := object.NewEnvironment()
 	evaluation := evaluator.Eval(program, env)

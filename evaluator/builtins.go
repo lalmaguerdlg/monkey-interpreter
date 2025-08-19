@@ -28,4 +28,28 @@ var builtins = map[string]*object.Builtin{
 			return NULL
 		},
 	},
+	"string": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments, got=%d, want=%d", len(args), 1)
+			}
+			return castObjectToString(args[0])
+		},
+	},
+	"int": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments, got=%d, want=%d", len(args), 1)
+			}
+			return castObjectToInteger(args[0])
+		},
+	},
+	"bool": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments, got=%d, want=%d", len(args), 1)
+			}
+			return castObjectToBoolean(args[0])
+		},
+	},
 }

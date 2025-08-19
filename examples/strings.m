@@ -8,7 +8,8 @@ let fullname = concat(firstname, lastname, " ")
 
 puts(fullname)
 
-puts("foo " + 1)
-puts("bar " + true)
-puts("baz " + puts(1))
-puts("baz " + fn(x) { x })
+puts("Casting to string")
+puts("int: " + string(1))
+puts("bool: " + string(true))
+puts("function: " + string(fn(x) {x}))
+

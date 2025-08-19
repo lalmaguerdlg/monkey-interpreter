@@ -27,7 +27,7 @@ let counter = newCounter(0)
 let x = 25
 let result = fib(x, counter)
 
-puts("fib(" + x + "): " + result);
+puts("fib(" + string(x) + ") = " + string(result));
 
-puts("iterations: " + (counter() - 1));
+puts("iterations: " + string(counter() - 1));
 
