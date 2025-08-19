@@ -24,6 +24,11 @@ func TestNextToken(t *testing.T) {
 
   10 == 10;
   10 != 9;
+  "hello";
+  "hello world";
+  "hello \"world\"";
+  "hello\nworld";
+  "hello\tworld";
   `
 	tests := []struct {
 		expectedType    token.TokenType
@@ -101,6 +106,16 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "10"},
 		{token.NOTEQ, "!="},
 		{token.INT, "9"},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "hello"},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "hello world"},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "hello \"world\""},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "hello\nworld"},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "hello\tworld"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}

@@ -67,6 +67,24 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestEvalStringExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"hello world"`, "hello world"},
+		{`"hello \"world\""`, "hello \"world\""},
+		{`"hello\nworld"`, "hello\nworld"},
+		{`"hello\tworld"`, "hello\tworld"},
+		{`"hello" + " " + "world"`, "hello world"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestBangOperator(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -263,6 +281,14 @@ func TestErrorHandlig(t *testing.T) {
 			"foobar",
 			"identifier foobar is undefined",
 		},
+		{
+			"foo = 1",
+			"assign to an undefined identifier foo",
+		},
+		{
+			`"hello" - "world"`,
+			"unknown operator: STRING - STRING",
+		},
 	}
 
 	for _, tt := range tests {
@@ -317,6 +343,21 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	return true
 }
 
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("object is not String, got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("object has wrong value, got=%s, want=%s ", result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	result, ok := obj.(*object.Null)
 	if !ok {
@@ -324,7 +365,7 @@ func testNullObject(t *testing.T, obj object.Object) bool {
 		return false
 	}
 
-	if result.Type() != object.NullObj {
+	if result.Type() != object.NullType {
 		t.Errorf("object.Type is not object.NullObj, got=%s", obj.Type())
 		return false
 	}

@@ -237,6 +237,38 @@ func TestBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"hello world";`, "hello world"},
+		{`"hello \"world\"";`, `hello "world"`},
+		{`"hello\nworld";`, "hello\nworld"},
+		{`"hello\tworld";`, "hello\tworld"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		if !testStringLiteral(t, stmt.Expression, tt.expected) {
+			return
+		}
+	}
+}
+
 func TestIfExpressions(t *testing.T) {
 	input := `if (x < y) { x }`
 
@@ -763,6 +795,23 @@ func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 	}
 	if boolean.TokenLiteral() != fmt.Sprintf("%t", value) {
 		t.Errorf("boolean.TokenLiteral not %t. got=%s", value, boolean.TokenLiteral())
+		return false
+	}
+	return true
+}
+
+func testStringLiteral(t *testing.T, exp ast.Expression, value string) bool {
+	str, ok := exp.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("exp is not ast.StringLiteral. got=%T", exp)
+		return false
+	}
+	if str.Value != value {
+		t.Errorf("str.Value not %s. got=%s", value, str.Value)
+		return false
+	}
+	if str.TokenLiteral() != value {
+		t.Errorf("str.TokenLiteral not %s. got=%s", value, str.TokenLiteral())
 		return false
 	}
 	return true

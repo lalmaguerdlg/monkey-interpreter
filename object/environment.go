@@ -42,7 +42,7 @@ func (e *Environment) Assign(name string, value Object) Object {
 	}
 
 	if e.outer == nil {
-		return &Error{Message: fmt.Sprintf("usage of undefined variable %q", name)}
+		return &Error{Message: fmt.Sprintf("assign to an undefined identifier %s", name)}
 	}
 
 	return e.outer.Assign(name, value)

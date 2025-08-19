@@ -252,6 +252,19 @@ func (b *Boolean) ASTDebugString(w io.Writer, depth int) {
 	debugWrite(w, fmt.Sprintf("BOOL (%t)\n", b.Value), depth)
 }
 
+type StringLiteral struct {
+	Token token.Token // the token.INT token
+	Value string
+}
+
+func (il *StringLiteral) expressionNode()            {}
+func (il *StringLiteral) TokenType() token.TokenType { return il.Token.Type }
+func (il *StringLiteral) TokenLiteral() string       { return il.Token.Literal }
+func (il *StringLiteral) String() string             { return il.Token.Literal }
+func (il *StringLiteral) ASTDebugString(w io.Writer, depth int) {
+	debugWrite(w, fmt.Sprintf("STRING (%s)\n", il.Value), depth)
+}
+
 type PrefixExpression struct {
 	Token    token.Token // the token.BANG token
 	Operator string

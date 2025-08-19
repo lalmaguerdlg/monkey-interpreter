@@ -45,6 +45,9 @@ const (
 	LBRACE = "{"
 	RBRACE = "}"
 
+	// Literals
+	STRING = "STRING"
+
 	// Keywords
 	FUNCTION = "FUNCTION"
 	LET      = "LET"

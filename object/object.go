@@ -11,12 +11,13 @@ import (
 type ObjectType string
 
 const (
-	IntegerObj  ObjectType = "INTEGER"
-	BooleanObj  ObjectType = "BOOLEAN"
-	ReturnObj   ObjectType = "RETURN"
-	FunctionObj ObjectType = "FUNCTION"
-	ErrorObj    ObjectType = "ERROR"
-	NullObj     ObjectType = "NULL"
+	IntegerType  ObjectType = "INTEGER"
+	BooleanType  ObjectType = "BOOLEAN"
+	StringType   ObjectType = "STRING"
+	ReturnType   ObjectType = "RETURN"
+	FunctionType ObjectType = "FUNCTION"
+	ErrorType    ObjectType = "ERROR"
+	NullType     ObjectType = "NULL"
 )
 
 type Object interface {
@@ -28,21 +29,28 @@ type Integer struct {
 	Value int64
 }
 
-func (i *Integer) Type() ObjectType { return IntegerObj }
+func (i *Integer) Type() ObjectType { return IntegerType }
 func (i *Integer) Inspect() string  { return strconv.FormatInt(i.Value, 10) }
 
 type Boolean struct {
 	Value bool
 }
 
-func (i *Boolean) Type() ObjectType { return BooleanObj }
-func (i *Boolean) Inspect() string  { return strconv.FormatBool(i.Value) }
+func (b *Boolean) Type() ObjectType { return BooleanType }
+func (b *Boolean) Inspect() string  { return strconv.FormatBool(b.Value) }
+
+type String struct {
+	Value string
+}
+
+func (s *String) Type() ObjectType { return StringType }
+func (s *String) Inspect() string  { return s.Value }
 
 type ReturnValue struct {
 	Value Object
 }
 
-func (rv *ReturnValue) Type() ObjectType { return ReturnObj }
+func (rv *ReturnValue) Type() ObjectType { return ReturnType }
 func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
 
 type Function struct {
@@ -51,7 +59,7 @@ type Function struct {
 	Env        *Environment
 }
 
-func (f *Function) Type() ObjectType { return FunctionObj }
+func (f *Function) Type() ObjectType { return FunctionType }
 func (f *Function) Inspect() string {
 	var out bytes.Buffer
 
@@ -74,10 +82,10 @@ type Error struct {
 	Message string
 }
 
-func (e *Error) Type() ObjectType { return ErrorObj }
+func (e *Error) Type() ObjectType { return ErrorType }
 func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 
 type Null struct{}
 
-func (i *Null) Type() ObjectType { return NullObj }
+func (i *Null) Type() ObjectType { return NullType }
 func (i *Null) Inspect() string  { return "null" }

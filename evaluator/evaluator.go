@@ -54,6 +54,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Value)
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.IfExpression:
@@ -117,9 +119,9 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 		result = Eval(statement, env)
 		if result != nil {
 			switch result.Type() {
-			case object.ErrorObj:
+			case object.ErrorType:
 				fallthrough
-			case object.ReturnObj:
+			case object.ReturnType:
 				return result
 			}
 		}
@@ -196,8 +198,10 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 
 func evalInfixExpression(operator string, left object.Object, right object.Object) object.Object {
 	switch {
-	case left.Type() == object.IntegerObj && right.Type() == object.IntegerObj:
+	case left.Type() == object.IntegerType && right.Type() == object.IntegerType:
 		return evalIntegerInfixExpression(operator, left, right)
+	case left.Type() == object.StringType && right.Type() == object.StringType:
+		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "!=":
@@ -234,6 +238,21 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 	}
 }
 
+func evalStringInfixExpression(operator string, left object.Object, right object.Object) object.Object {
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	switch operator {
+	case "+":
+		return &object.String{Value: leftVal + rightVal}
+	case "==":
+		return &object.Boolean{Value: leftVal == rightVal}
+	case "!=":
+		return &object.Boolean{Value: leftVal != rightVal}
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+}
+
 func evalIfExpression(node *ast.IfExpression, env *object.Environment) object.Object {
 	condition := Eval(node.Condition, env)
 	if isError(condition) {
@@ -262,7 +281,7 @@ func evalBangOperatorExpression(operand object.Object) object.Object {
 }
 
 func evalMinusPrefixOperatorExpression(operand object.Object) object.Object {
-	if operand.Type() != object.IntegerObj {
+	if operand.Type() != object.IntegerType {
 		return newError("unknown operator: -%s", operand.Type())
 	}
 
@@ -298,5 +317,5 @@ func nativeBoolToBooleanObject(value bool) *object.Boolean {
 }
 
 func isError(obj object.Object) bool {
-	return obj != nil && obj.Type() == object.ErrorObj
+	return obj != nil && obj.Type() == object.ErrorType
 }

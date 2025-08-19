@@ -3,6 +3,7 @@ package lexer
 
 import (
 	"monkey/token"
+	"strings"
 )
 
 type Lexer struct {
@@ -87,6 +88,9 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -160,6 +164,35 @@ func (l *Lexer) readNumber() string {
 		l.readChar()
 	}
 	return l.input[position:l.position]
+}
+
+func (l *Lexer) readString() string {
+	var out strings.Builder
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+		if l.ch == '\\' {
+			switch l.peekChar() {
+			case 't':
+				out.WriteRune('\t')
+			case 'n':
+				out.WriteRune('\n')
+			case 'r':
+				out.WriteRune('\r')
+			case '"':
+				out.WriteRune('"')
+			default:
+				out.WriteRune('\\')
+				out.WriteByte(l.ch)
+			}
+			l.readChar()
+		} else {
+			out.WriteByte(l.ch)
+		}
+	}
+	return out.String()
 }
 
 func newToken(tokenType token.TokenType, ch byte) token.Token {
