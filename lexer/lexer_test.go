@@ -31,6 +31,7 @@ func TestNextToken(t *testing.T) {
   "hello \"world\"";
   "hello\nworld";
   "hello\tworld";
+  let a = [1, 2];
   `
 	tests := []struct {
 		expectedType    token.TokenType
@@ -118,6 +119,15 @@ func TestNextToken(t *testing.T) {
 		{token.STRING, "hello\nworld"},
 		{token.SEMICOLON, ";"},
 		{token.STRING, "hello\tworld"},
+		{token.SEMICOLON, ";"},
+		{token.LET, "let"},
+		{token.IDENT, "a"},
+		{token.ASSIGN, "="},
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.RBRACKET, "]"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}

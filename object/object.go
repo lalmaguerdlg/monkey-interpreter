@@ -14,6 +14,7 @@ const (
 	IntegerType  ObjectType = "INTEGER"
 	BooleanType  ObjectType = "BOOLEAN"
 	StringType   ObjectType = "STRING"
+	ArrayType    ObjectType = "ARRAY"
 	ReturnType   ObjectType = "RETURN"
 	FunctionType ObjectType = "FUNCTION"
 	BuiltinType  ObjectType = "BUILTIN"
@@ -46,6 +47,23 @@ type String struct {
 
 func (s *String) Type() ObjectType { return StringType }
 func (s *String) Inspect() string  { return s.Value }
+
+type Array struct {
+	Elements []Object
+}
+
+func (a *Array) Type() ObjectType { return ArrayType }
+func (a *Array) Inspect() string {
+	var out strings.Builder
+	list := []string{}
+	for _, el := range a.Elements {
+		list = append(list, el.Inspect())
+	}
+	out.WriteString("[")
+	out.WriteString(strings.Join(list, ", "))
+	out.WriteString("]")
+	return out.String()
+}
 
 type ReturnValue struct {
 	Value Object

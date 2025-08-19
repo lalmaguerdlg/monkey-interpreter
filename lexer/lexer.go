@@ -31,6 +31,7 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 	for l.ch == '#' {
 		l.skipComment()
+		l.skipWhitespace()
 	}
 
 	switch l.ch {
@@ -91,6 +92,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+	case '[':
+		tok = newToken(token.LBRACKET, l.ch)
+	case ']':
+		tok = newToken(token.RBRACKET, l.ch)
 	case '"':
 		tok.Type = token.STRING
 		tok.Literal = l.readString()
@@ -143,7 +148,6 @@ func (l *Lexer) skipComment() {
 	for l.ch != '\n' && l.ch != 0 {
 		l.readChar()
 	}
-	l.skipWhitespace()
 }
 
 func (l *Lexer) readIdentifier() string {

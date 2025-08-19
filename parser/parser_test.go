@@ -269,6 +269,94 @@ func TestStringLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestParsingArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	arr, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ArrayLiteral. got=%T", stmt)
+	}
+	if len(arr.Elements) != 3 {
+		t.Fatalf("arr does not have %d elements. got=%d", 3, len(arr.Elements))
+	}
+
+	testIntegerLiteral(t, arr.Elements[0], 1)
+	testInfixExpression(t, arr.Elements[1], 2, "*", 2)
+	testInfixExpression(t, arr.Elements[2], 3, "+", 3)
+}
+
+func TestArrayLiterals(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{"[2]", []any{2}},
+		{"[2, foo]", []any{2, "foo"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		testArrayLiteral(t, stmt.Expression, tt.expected)
+	}
+}
+
+func TestParsingIndexExpressions(t *testing.T) {
+	input := "myArray[1 + 1]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	idx, ok := stmt.Expression.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ArrayLiteral. got=%T", stmt)
+	}
+
+	if !testIdentifier(t, idx.Left, "myArray") {
+		return
+	}
+	if !testInfixExpression(t, idx.Index, 1, "+", 1) {
+		return
+	}
+}
+
 func TestIfExpressions(t *testing.T) {
 	input := `if (x < y) { x }`
 
@@ -751,6 +839,14 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"add(a + b + c * d / f + g)",
 			"add((((a + b) + ((c * d) / f)) + g))",
 		},
+		{
+			"a * [1, 2, 3, 4][b * c] * d",
+			"((a * ([1, 2, 3, 4][(b * c)])) * d)",
+		},
+		{
+			"add(a * b[2], b[1], 2 * [1, 2][1])",
+			"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+		},
 	}
 
 	for _, tt := range infixTests {
@@ -813,6 +909,24 @@ func testStringLiteral(t *testing.T, exp ast.Expression, value string) bool {
 	if str.TokenLiteral() != value {
 		t.Errorf("str.TokenLiteral not %s. got=%s", value, str.TokenLiteral())
 		return false
+	}
+	return true
+}
+
+func testArrayLiteral(t *testing.T, exp ast.Expression, values []any) bool {
+	arr, ok := exp.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("exp is not ast.ArrayLiteral. got=%T", exp)
+		return false
+	}
+	if len(arr.Elements) != len(values) {
+		t.Errorf("arr does not have %d elements. got=%d", len(values), len(arr.Elements))
+		return false
+	}
+	for i, elm := range arr.Elements {
+		if !testLiteralExpression(t, elm, values[i]) {
+			return false
+		}
 	}
 	return true
 }

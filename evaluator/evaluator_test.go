@@ -85,6 +85,47 @@ func TestEvalStringExpression(t *testing.T) {
 	}
 }
 
+func TestArrayLiterals(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{"[1]", []any{1}},
+		{"[1, 2]", []any{1, 2}},
+		{"[1, 2, \"foo\"]", []any{1, 2, "foo"}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testArrayObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{"[1][0]", 1},
+		{"[1, 2][1]", 2},
+		{"[1, 2, \"foo\"][2]", "foo"},
+		{"let myArray = [1, 2, \"foo\"]; myArray[2];", "foo"},
+		{"[1, 2, 3][3]", nil},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testStringObject(t, evaluated, expected)
+		case nil:
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func TestBangOperator(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -385,6 +426,30 @@ func testStringObject(t *testing.T, obj object.Object, expected string) bool {
 	if result.Value != expected {
 		t.Errorf("object has wrong value, got=%s, want=%s ", result.Value, expected)
 		return false
+	}
+
+	return true
+}
+
+func testArrayObject(t *testing.T, obj object.Object, expected []any) bool {
+	result, ok := obj.(*object.Array)
+	if !ok {
+		t.Errorf("object is not Array, got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if len(result.Elements) != len(expected) {
+		t.Errorf("array has wrong number of elements, got=%d, want=%d ", len(result.Elements), len(expected))
+		return false
+	}
+
+	for i, el := range result.Elements {
+		switch expected := expected[i].(type) {
+		case int:
+			testIntegerObject(t, el, int64(expected))
+		case string:
+			testStringObject(t, el, expected)
+		}
 	}
 
 	return true

@@ -2,8 +2,6 @@
 package ast
 
 import (
-	"fmt"
-	"io"
 	"monkey/token"
 	"strings"
 )
@@ -12,7 +10,6 @@ type Node interface {
 	TokenType() token.TokenType
 	TokenLiteral() string
 	String() string
-	ASTDebugString(out io.Writer, depth int)
 }
 
 type Statement interface {
@@ -54,14 +51,6 @@ func (p *Program) String() string {
 	return b.String()
 }
 
-func (p *Program) ASTDebugString(w io.Writer, depth int) {
-	fmt.Fprintf(w, "Program {\n")
-	for _, stmt := range p.Statements {
-		stmt.ASTDebugString(w, depth)
-	}
-	fmt.Fprintf(w, "}\n")
-}
-
 type LetStatement struct {
 	Token token.Token // the token.LET token
 	Name  *Identifier
@@ -82,21 +71,6 @@ func (ls *LetStatement) String() string {
 	}
 	b.WriteString(";")
 	return b.String()
-}
-
-func (ls *LetStatement) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "LetStatement {\n", depth)
-	if ls.Name != nil {
-		ls.Name.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Name (nil)\n", depth+1)
-	}
-	if ls.Value != nil {
-		ls.Value.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Value (nil)\n", depth+1)
-	}
-	debugWrite(w, "}\n", depth)
 }
 
 type AssignmentStatement struct {
@@ -120,21 +94,6 @@ func (ls *AssignmentStatement) String() string {
 	return b.String()
 }
 
-func (ls *AssignmentStatement) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "AssignmentStatement {\n", depth)
-	if ls.Name != nil {
-		ls.Name.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Name (nil)\n", depth+1)
-	}
-	if ls.Value != nil {
-		ls.Value.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Value (nil)\n", depth+1)
-	}
-	debugWrite(w, "}\n", depth)
-}
-
 type ReturnStatement struct {
 	Token       token.Token // the token.RETURN token
 	ReturnValue Expression
@@ -153,16 +112,6 @@ func (rs *ReturnStatement) String() string {
 	return b.String()
 }
 
-func (rs *ReturnStatement) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "ReturnStatement {\n", depth)
-	if rs.ReturnValue != nil {
-		rs.ReturnValue.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "ReturnValue (nil)\n", depth+1)
-	}
-	debugWrite(w, "}\n", depth)
-}
-
 type ExpressionStatement struct {
 	Token      token.Token // the first token of the expression
 	Expression Expression
@@ -176,16 +125,6 @@ func (es *ExpressionStatement) String() string {
 		return es.Expression.String()
 	}
 	return ""
-}
-
-func (es *ExpressionStatement) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "ExpressionStatement {\n", depth)
-	if es.Expression != nil {
-		es.Expression.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Expression (nil)\n", depth+1)
-	}
-	debugWrite(w, "}\n", depth)
 }
 
 type BlockStatement struct {
@@ -205,14 +144,6 @@ func (bs *BlockStatement) String() string {
 	return b.String()
 }
 
-func (bs *BlockStatement) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "BlockStatement {\n", depth)
-	for _, stmt := range bs.Statements {
-		stmt.ASTDebugString(w, depth+1)
-	}
-	debugWrite(w, "}\n", depth)
-}
-
 type Identifier struct {
 	Token token.Token // the token.IDENT token
 	Value string
@@ -222,9 +153,6 @@ func (i *Identifier) expressionNode()            {}
 func (i *Identifier) TokenType() token.TokenType { return i.Token.Type }
 func (i *Identifier) TokenLiteral() string       { return i.Token.Literal }
 func (i *Identifier) String() string             { return i.Value }
-func (i *Identifier) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, fmt.Sprintf("Identifier (%s)\n", i.Value), depth)
-}
 
 type IntegerLiteral struct {
 	Token token.Token // the token.INT token
@@ -235,9 +163,6 @@ func (il *IntegerLiteral) expressionNode()            {}
 func (il *IntegerLiteral) TokenType() token.TokenType { return il.Token.Type }
 func (il *IntegerLiteral) TokenLiteral() string       { return il.Token.Literal }
 func (il *IntegerLiteral) String() string             { return il.Token.Literal }
-func (il *IntegerLiteral) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, fmt.Sprintf("INT (%d)\n", il.Value), depth)
-}
 
 type Boolean struct {
 	Token token.Token // the token.TRUE or FALSE token
@@ -248,9 +173,6 @@ func (b *Boolean) expressionNode()            {}
 func (b *Boolean) TokenType() token.TokenType { return b.Token.Type }
 func (b *Boolean) TokenLiteral() string       { return b.Token.Literal }
 func (b *Boolean) String() string             { return b.Token.Literal }
-func (b *Boolean) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, fmt.Sprintf("BOOL (%t)\n", b.Value), depth)
-}
 
 type StringLiteral struct {
 	Token token.Token // the token.INT token
@@ -261,8 +183,45 @@ func (il *StringLiteral) expressionNode()            {}
 func (il *StringLiteral) TokenType() token.TokenType { return il.Token.Type }
 func (il *StringLiteral) TokenLiteral() string       { return il.Token.Literal }
 func (il *StringLiteral) String() string             { return il.Token.Literal }
-func (il *StringLiteral) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, fmt.Sprintf("STRING (%s)\n", il.Value), depth)
+
+type ArrayLiteral struct {
+	Token    token.Token // the token.INT token
+	Elements []Expression
+}
+
+func (al *ArrayLiteral) expressionNode()            {}
+func (al *ArrayLiteral) TokenType() token.TokenType { return al.Token.Type }
+func (al *ArrayLiteral) TokenLiteral() string       { return al.Token.Literal }
+func (al *ArrayLiteral) String() string {
+	var out strings.Builder
+	elements := []string{}
+	for _, el := range al.Elements {
+		elements = append(elements, el.String())
+	}
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+	return out.String()
+}
+
+type IndexExpression struct {
+	Token token.Token // the token.INT token
+	Left  Expression
+	Index Expression
+}
+
+func (ie *IndexExpression) expressionNode()            {}
+func (ie *IndexExpression) TokenType() token.TokenType { return ie.Token.Type }
+func (ie *IndexExpression) TokenLiteral() string       { return ie.Token.Literal }
+func (ie *IndexExpression) String() string {
+	var out strings.Builder
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString("[")
+	out.WriteString(ie.Index.String())
+	out.WriteString("]")
+	out.WriteString(")")
+	return out.String()
 }
 
 type PrefixExpression struct {
@@ -283,17 +242,6 @@ func (exp *PrefixExpression) String() string {
 	}
 	b.WriteString(")")
 	return b.String()
-}
-
-func (exp *PrefixExpression) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "PrefixExpression {\n", depth)
-	debugWrite(w, fmt.Sprintf("Operator (%s)\n", exp.Operator), depth+1)
-	if exp.Right != nil {
-		exp.Right.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Right (nil)\n", depth+1)
-	}
-	debugWrite(w, "}\n", depth)
 }
 
 type InfixExpression struct {
@@ -320,22 +268,6 @@ func (exp *InfixExpression) String() string {
 	return b.String()
 }
 
-func (exp *InfixExpression) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "InfixExpression {\n", depth)
-	if exp.Left != nil {
-		exp.Left.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Left (nil)\n", depth+1)
-	}
-	debugWrite(w, fmt.Sprintf("Operator (%s)\n", exp.Operator), depth+1)
-	if exp.Right != nil {
-		exp.Right.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Right (nil)\n", depth+1)
-	}
-	debugWrite(w, "}\n", depth)
-}
-
 // TODO: Implement PostfixExpressions these when feeling comfortable
 // an example of postfix operations are: increment and decrements `i++` `i--`
 
@@ -359,17 +291,6 @@ func (exp *PostfixExpression) String() string {
 	return b.String()
 }
 
-func (exp *PostfixExpression) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "PostfixExpression {\n", depth)
-	if exp.Left != nil {
-		exp.Left.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Left (nil)\n", depth+1)
-	}
-	debugWrite(w, fmt.Sprintf("Operator (%s)\n", exp.Operator), depth+1)
-	debugWrite(w, "}\n", depth)
-}
-
 type IfExpression struct {
 	Token       token.Token // the token.IF token
 	Condition   Expression
@@ -391,20 +312,6 @@ func (exp *IfExpression) String() string {
 		b.WriteString(exp.Alternative.String())
 	}
 	return b.String()
-}
-
-func (exp *IfExpression) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "IfExpression {\n", depth)
-	exp.Condition.ASTDebugString(w, depth+1)
-	if exp.Consequence != nil {
-		exp.Consequence.ASTDebugString(w, depth+1)
-	} else {
-		debugWrite(w, "Consequence (nil)\n", depth+1)
-	}
-	if exp.Alternative != nil {
-		exp.Alternative.ASTDebugString(w, depth+1)
-	}
-	debugWrite(w, "}\n", depth)
 }
 
 type FunctionLiteral struct {
@@ -432,19 +339,6 @@ func (exp *FunctionLiteral) String() string {
 	return b.String()
 }
 
-func (exp *FunctionLiteral) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "FunctionLiteral {\n", depth)
-	if len(exp.Parameters) > 0 {
-		for _, param := range exp.Parameters {
-			param.ASTDebugString(w, depth+1)
-		}
-	}
-	if exp.Body != nil {
-		exp.Body.ASTDebugString(w, depth+1)
-	}
-	debugWrite(w, "}\n", depth)
-}
-
 type CallExpression struct {
 	Token     token.Token // the token.IF token
 	Function  Expression
@@ -466,21 +360,4 @@ func (exp *CallExpression) String() string {
 	b.WriteString(strings.Join(args, ", "))
 	b.WriteString(")")
 	return b.String()
-}
-
-func (exp *CallExpression) ASTDebugString(w io.Writer, depth int) {
-	debugWrite(w, "CallExpression {\n", depth)
-	if exp.Function != nil {
-		exp.Function.ASTDebugString(w, depth+1)
-	}
-	if len(exp.Arguments) > 0 {
-		for _, arg := range exp.Arguments {
-			arg.ASTDebugString(w, depth+1)
-		}
-	}
-	debugWrite(w, "}\n", depth)
-}
-
-func debugWrite(w io.Writer, str string, depth int) {
-	fmt.Fprintf(w, "%s%s", strings.Repeat(" ", depth*2), str)
 }
