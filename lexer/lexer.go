@@ -185,7 +185,7 @@ func (l *Lexer) readString() string {
 				out.WriteRune('"')
 			default:
 				out.WriteRune('\\')
-				out.WriteByte(l.ch)
+				out.WriteByte(l.peekChar())
 			}
 			l.readChar()
 		} else {
