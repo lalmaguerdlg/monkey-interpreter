@@ -204,6 +204,26 @@ func (al *ArrayLiteral) String() string {
 	return out.String()
 }
 
+type HashLiteral struct {
+	Token token.Token // the token.INT token
+	Pairs map[Expression]Expression
+}
+
+func (hl *HashLiteral) expressionNode()            {}
+func (hl *HashLiteral) TokenType() token.TokenType { return hl.Token.Type }
+func (hl *HashLiteral) TokenLiteral() string       { return hl.Token.Literal }
+func (hl *HashLiteral) String() string {
+	var out strings.Builder
+	pairs := []string{}
+	for key, value := range hl.Pairs {
+		pairs = append(pairs, key.String()+":"+value.String())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+	return out.String()
+}
+
 type IndexExpression struct {
 	Token token.Token // the token.INT token
 	Left  Expression
@@ -220,6 +240,25 @@ func (ie *IndexExpression) String() string {
 	out.WriteString("[")
 	out.WriteString(ie.Index.String())
 	out.WriteString("]")
+	out.WriteString(")")
+	return out.String()
+}
+
+type DotExpression struct {
+	Token token.Token // the token.INT token
+	Left  Expression
+	Right *Identifier
+}
+
+func (de *DotExpression) expressionNode()            {}
+func (de *DotExpression) TokenType() token.TokenType { return de.Token.Type }
+func (de *DotExpression) TokenLiteral() string       { return de.Token.Literal }
+func (de *DotExpression) String() string {
+	var out strings.Builder
+	out.WriteString("(")
+	out.WriteString(de.Left.String())
+	out.WriteString(".")
+	out.WriteString(de.Right.String())
 	out.WriteString(")")
 	return out.String()
 }

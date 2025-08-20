@@ -101,6 +101,48 @@ func TestArrayLiterals(t *testing.T) {
 	}
 }
 
+func TestHashLiterals(t *testing.T) {
+	input := `
+  let two = "two";
+  {
+    "one": 10 - 9,
+    two: 1 + 1,
+    "thr" + "ee": 6 / 2,
+    4: 4,
+    true: 5,
+    false: 6
+  }
+  `
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Hash)
+	if !ok {
+		t.Fatalf("object is not Hash, got=%T (%+v)", evaluated, evaluated)
+		return
+	}
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		(&object.Boolean{Value: true}).HashKey():   5,
+		(&object.Boolean{Value: false}).HashKey():  6,
+	}
+
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("array has wrong number of pairs, got=%d, want=%d ", len(result.Pairs), len(expected))
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pair, ok := result.Pairs[expectedKey]
+		if !ok {
+			t.Errorf("no pair for given key in Pairs")
+			continue
+		}
+		testIntegerObject(t, pair.Value, expectedValue)
+	}
+}
+
 func TestIndexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -111,6 +153,56 @@ func TestIndexExpressions(t *testing.T) {
 		{"[1, 2, \"foo\"][2]", "foo"},
 		{"let myArray = [1, 2, \"foo\"]; myArray[2];", "foo"},
 		{"[1, 2, 3][3]", nil},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testStringObject(t, evaluated, expected)
+		case nil:
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+func TestHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{`{"one": 1}["one"]`, 1},
+		{`{"tw" + "o": 2}["tw" + "o"]`, 2},
+		{`let key = "foo"; {key: 3}[key]`, 3},
+		{`{}["foo"]`, nil},
+		{`{5: 5}[5]`, 5},
+		{`{true: "true"}[true]`, "true"},
+		{`{false: 5}[false]`, 5},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testStringObject(t, evaluated, expected)
+		case nil:
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+func TestHashDotExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{`{"one": 1}.one`, 1},
+		{`{"tw" + "o": 2}.two`, 2},
+		{`{}.foo`, nil},
 	}
 
 	for _, tt := range tests {

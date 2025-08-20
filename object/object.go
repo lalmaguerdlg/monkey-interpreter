@@ -3,6 +3,7 @@ package object
 
 import (
 	"bytes"
+	"hash/fnv"
 	"monkey/ast"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ const (
 	BooleanType  ObjectType = "BOOLEAN"
 	StringType   ObjectType = "STRING"
 	ArrayType    ObjectType = "ARRAY"
+	HashType     ObjectType = "HASH"
 	ReturnType   ObjectType = "RETURN"
 	FunctionType ObjectType = "FUNCTION"
 	BuiltinType  ObjectType = "BUILTIN"
@@ -27,12 +29,24 @@ type Object interface {
 	Inspect() string
 }
 
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+type Hashable interface {
+	HashKey() HashKey
+}
+
 type Integer struct {
 	Value int64
 }
 
 func (i *Integer) Type() ObjectType { return IntegerType }
 func (i *Integer) Inspect() string  { return strconv.FormatInt(i.Value, 10) }
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
 
 type Boolean struct {
 	Value bool
@@ -40,6 +54,15 @@ type Boolean struct {
 
 func (b *Boolean) Type() ObjectType { return BooleanType }
 func (b *Boolean) Inspect() string  { return strconv.FormatBool(b.Value) }
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+	return HashKey{Type: b.Type(), Value: value}
+}
 
 type String struct {
 	Value string
@@ -47,6 +70,12 @@ type String struct {
 
 func (s *String) Type() ObjectType { return StringType }
 func (s *String) Inspect() string  { return s.Value }
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+	key := HashKey{Type: s.Type(), Value: h.Sum64()}
+	return key
+}
 
 type Array struct {
 	Elements []Object
@@ -62,6 +91,27 @@ func (a *Array) Inspect() string {
 	out.WriteString("[")
 	out.WriteString(strings.Join(list, ", "))
 	out.WriteString("]")
+	return out.String()
+}
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (hm *Hash) Type() ObjectType { return HashType }
+func (hm *Hash) Inspect() string {
+	var out strings.Builder
+	pairs := []string{}
+	for _, pair := range hm.Pairs {
+		pairs = append(pairs, pair.Key.Inspect()+":"+pair.Value.Inspect())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
 	return out.String()
 }
 
